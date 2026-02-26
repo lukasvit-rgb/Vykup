@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Palety Vít – Evidence oprav</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d0d0d;
+  --surface:  #161616;
+  --surface2: #1f1f1f;
+  --border:   #2e2e2e;
+  --accent:   #ffffff;
+  --accent2:  #cccccc;
+  --accent3:  #999999;
+  --green:    #4caf50;
+  --blue:     #5b9bd5;
+  --red:      #e05540;
+  --yellow:   #f5c842;
+  --text:     #f0f0f0;
+  --dim:      #777777;
+  --r:        6px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ─────────────────────────────── */
+#header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: var(--surface);
+  border-bottom: 3px solid var(--accent);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  height: 60px;
+}
+
+#header h1 {
+  font-size: 22px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent);
+}
+
+.header-right {
+  display: flex; align-items: center; gap: 14px;
+}
+
+#clock {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 20px; color: #ffffff;
+  letter-spacing: 2px; font-weight:700;
+}
+
+#offline-badge {
+  background: var(--red); color: #fff;
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 2px;
+  display: none;
+}
+body.offline #offline-badge { display: block; }
+
+/* ── NAV TABS ────────────────────────────── */
+#nav {
+  position: fixed; top: 60px; left: 0; right: 0; z-index: 190;
+  display: flex;
+  background: #111111;
+  border-bottom: 1px solid #2e2e2e;
+}
+
+.tab-btn {
+  flex: 1; padding: 14px 8px;
+  background: none; border: none; border-bottom: 3px solid transparent;
+  color: var(--dim); font-family: 'Montserrat', sans-serif;
+  font-size: 16px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; cursor: pointer;
+  transition: all .15s;
+}
+.tab-btn.active { color: #ffffff; border-bottom-color: #ffffff; font-weight:800; }
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+/* ── SCREENS ─────────────────────────────── */
+.screen {
+  display: none;
+  padding: 130px 16px 100px;
+  min-height: 100vh;
+}
+.screen.active { display: block; }
+
+/* ── ZADAVANI SCREEN ─────────────────────── */
+#s-zadani {
+  max-width: 700px; margin: 0 auto;
+}
+
+.section-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--dim);
+  margin-bottom: 8px; padding-left: 2px;
+}
+
+/* Worker picker */
+.worker-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 24px;
+}
+
+.worker-btn {
+  background: var(--surface2); border: 2px solid var(--border);
+  border-radius: var(--r); padding: 14px 8px;
+  cursor: pointer; text-align: center;
+  transition: all .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.worker-btn .dot {
+  width: 32px; height: 32px; border-radius: 50%;
+}
+.worker-btn .wname {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 1px;
+}
+.worker-btn.selected { border-color: #ffffff; background: rgba(255,255,255,.07); }
+.worker-btn:active { transform: scale(0.96); }
+
+/* Pallet type */
+.pallet-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-bottom: 24px;
+}
+@media (max-width: 500px) {
+  .pallet-grid { grid-template-columns: repeat(2, 1fr); }
+  .worker-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.pallet-btn {
+  background: var(--surface2); border: 2px solid var(--border);
+  border-radius: var(--r); padding: 16px 8px;
+  cursor: pointer; text-align: center;
+  font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700;
+  color: var(--text); letter-spacing: 1px;
+  transition: all .15s;
+}
+.pallet-btn.selected { border-color: #ffffff; color: #ffffff; background: rgba(255,255,255,.08); }
+.pallet-btn:active { transform: scale(0.96); }
+
+/* Counter */
+.counter-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px;
+}
+
+.qty-display {
+  flex: 1; background: var(--surface2); border: 2px solid var(--border);
+  border-radius: var(--r); text-align: center;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 52px; line-height: 1;
+  padding: 16px; color: var(--accent2);
+  letter-spacing: 4px;
+}
+
+.qty-btns {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.qty-col2 {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+}
+
+.btn-qty {
+  background: var(--surface2); border: 2px solid var(--border);
+  border-radius: var(--r); color: var(--text);
+  font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 700;
+  padding: 12px 22px; cursor: pointer; min-width: 90px;
+  transition: all .1s;
+}
+.btn-qty:active { transform: scale(0.94); }
+.btn-qty.plus { border-color: var(--green); color: var(--green); }
+.btn-qty.plus:active { background: rgba(92,184,92,.2); }
+.btn-qty.minus { border-color: var(--red); color: var(--red); }
+.btn-qty.minus:active { background: rgba(217,83,79,.2); }
+
+/* Submit */
+.btn-submit-big {
+  width: 100%; background: #ffffff;
+  border: none; border-radius: var(--r);
+  font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: #111111; padding: 20px;
+  cursor: pointer; transition: all .1s;
+  position: relative; overflow: hidden;
+}
+.btn-submit-big:hover { background: #dddddd; }
+.btn-submit-big:active { transform: scale(0.98); }
+.btn-submit-big:disabled { background: var(--border); color: var(--dim); cursor: not-allowed; transform: none; }
+
+/* UNDO BANNER */
+#undo-banner {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 300;
+  background: #1a1a1a; border: 2px solid #444444;
+  border-radius: var(--r); padding: 14px 20px;
+  display: flex; align-items: center; gap: 16px;
+  min-width: 320px; max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  transform: translateX(-50%) translateY(20px);
+}
+#undo-banner.show {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+#undo-text { flex: 1; font-size: 16px; color: #f0f0f0; }
+#undo-progress {
+  height: 4px; background: var(--border); border-radius: 2px;
+  margin-top: 6px; overflow: hidden;
+}
+#undo-bar {
+  height: 100%; background: var(--green); border-radius: 2px;
+  width: 100%; transition: width linear;
+}
+.btn-undo {
+  background: #ffffff; border: none; border-radius: var(--r);
+  color: #111111; font-family: 'Montserrat', sans-serif;
+  font-size: 16px; font-weight: 700; letter-spacing: 1px;
+  padding: 10px 18px; cursor: pointer;
+}
+.btn-undo-dismiss {
+  background: none; border: 1px solid var(--border); border-radius: var(--r);
+  color: var(--dim); font-size: 14px; padding: 8px 12px; cursor: pointer;
+}
+
+/* ── PREHLED SCREEN ──────────────────────── */
+#s-prehled { max-width: 900px; margin: 0 auto; }
+
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px;
+  text-align: center;
+}
+.stat-card .big-num {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 40px; color: var(--accent); line-height: 1;
+}
+.stat-card .small-lbl {
+  font-size: 12px; letter-spacing: 1.5px; color: var(--dim);
+  text-transform: uppercase; margin-top: 4px;
+}
+
+.filter-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.filter-chip {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 3px; color: var(--dim);
+  font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 6px 14px; cursor: pointer; transition: all .15s;
+}
+.filter-chip.active { border-color: #ffffff; color: #111; background: #ffffff; }
+.filter-chip:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+/* Table */
+.tbl-wrap { overflow-x: auto; }
+table {
+  width: 100%; border-collapse: collapse;
+}
+thead tr { background: #222222; border-bottom: 2px solid #444444; }
+th {
+  padding: 10px 12px; text-align: left;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #aaaaaa; white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:hover { background: var(--surface2); }
+td { padding: 12px 12px; font-size: 16px; vertical-align: middle; }
+
+.td-qty {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 22px; color: var(--accent2); font-weight: 700;
+}
+.td-type {
+  font-weight: 700; letter-spacing: 1px; color: #cccccc;
+}
+.dot-sm {
+  display: inline-block; width: 12px; height: 12px;
+  border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  border: 1px solid rgba(255,255,255,.2);
+}
+.td-time { font-family: 'Roboto Mono', monospace; font-size: 13px; color: var(--dim); }
+
+/* Preset qty buttons */
+.preset-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+  margin-bottom: 14px;
+}
+@media (max-width: 500px) {
+  .preset-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.preset-btn {
+  background: var(--surface2); border: 2px solid var(--border);
+  border-radius: var(--r); color: var(--text);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 28px; font-weight: 700;
+  padding: 18px 8px; cursor: pointer;
+  transition: all .12s; text-align: center;
+}
+.preset-btn.selected {
+  border-color: #ffffff; color: #ffffff;
+  background: rgba(255,255,255,.1);
+}
+.preset-btn:active { transform: scale(0.93); }
+
+.manual-row {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px;
+}
+
+.btn-del {
+  background: none; border: 1px solid var(--border);
+  border-radius: var(--r); color: var(--dim);
+  font-size: 14px; padding: 5px 10px; cursor: pointer;
+  transition: all .15s;
+}
+.btn-del:hover { border-color: var(--red); color: var(--red); }
+
+.empty-msg {
+  text-align: center; padding: 60px 20px;
+  color: var(--dim); font-size: 18px; letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ── REPORT SCREEN ───────────────────────── */
+#s-report { max-width: 700px; margin: 0 auto; }
+
+.report-card {
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  border-radius: var(--r); padding: 20px; margin-bottom: 16px;
+}
+.report-card h3 {
+  font-size: 14px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--dim);
+  margin-bottom: 14px;
+}
+.report-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 18px;
+}
+.report-row:last-child { border-bottom: none; }
+.report-row .rval {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 22px; color: var(--accent2);
+}
+
+.btn-export {
+  width: 100%; background: var(--surface2);
+  border: 2px solid #ffffff; border-radius: var(--r);
+  color: #ffffff; font-family: 'Montserrat', sans-serif;
+  font-size: 18px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; padding: 16px;
+  cursor: pointer; transition: all .15s; margin-bottom: 12px;
+}
+.btn-export:hover { background: #ffffff; color: #111111; }
+
+.report-schedule {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r); padding: 14px 18px;
+  font-size: 15px; color: var(--text); line-height: 1.7;
+  margin-bottom: 16px;
+}
+.report-schedule strong { color: var(--accent); }
+
+/* ── BOTTOM SAFE AREA ────────────────────── */
+.safe-bottom { height: 32px; }
+
+/* ── TOAST ───────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a1a1a; border: 1px solid #3a3a3a; box-shadow:0 4px 16px rgba(0,0,0,.5);
+  color: var(--text); font-family: 'Montserrat', sans-serif;
+  font-size: 16px; font-weight: 600; letter-spacing: 1px;
+  padding: 12px 24px; border-radius: var(--r);
+  z-index: 500; opacity: 0; pointer-events: none;
+  transition: all .2s; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── PENDING SYNC badge ──────────────────── */
+#sync-badge {
+  display: none; background: #ffffff; color: #111111;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  padding: 2px 8px; border-radius: 2px; text-transform: uppercase;
+}
+#sync-badge.show { display: inline-block; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <img src="https://4c35036dd7.clvaw-cdnwnd.com/7cfd9bddf98568b613c5f5ea5c4a753b/200000466-6d15c6d15d/palety_logo_square3.jpeg?ph=4c35036dd7"
+         alt="Palety Vít" style="height:44px;width:44px;border-radius:4px;object-fit:cover;">
+    <div>
+      <div style="font-family:Montserrat,sans-serif;font-weight:900;font-size:16px;color:#fff;letter-spacing:2px;line-height:1.1;">PALETY VÍT</div>
+      <div style="font-family:Montserrat,sans-serif;font-size:10px;font-weight:600;color:#888;letter-spacing:2px;text-transform:uppercase;">Evidence oprav</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="sync-badge">⟳ K synchronizaci</span>
+    <span id="offline-badge">OFFLINE</span>
+    <span id="clock">00:00:00</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div id="nav">
+  <button class="tab-btn active" onclick="switchTab('zadani', this)">➕ Zadání</button>
+  <button class="tab-btn" onclick="switchTab('prehled', this)">📋 Přehled</button>
+  <button class="tab-btn" onclick="switchTab('report', this)">📊 Report</button>
+</div>
+
+<!-- ===== ZADÁNÍ ===== -->
+<div id="s-zadani" class="screen active">
+
+  <div class="section-label">1. Vyber pracovníka</div>
+  <div class="worker-grid" id="worker-grid"></div>
+
+  <div class="section-label">2. Typ palety</div>
+  <div class="pallet-grid" id="pallet-grid"></div>
+
+  <div class="section-label">3. Počet kusů</div>
+  <div class="preset-grid" id="preset-grid">
+    <button class="preset-btn" onclick="selectPreset(8)">8</button>
+    <button class="preset-btn" onclick="selectPreset(9)">9</button>
+    <button class="preset-btn" onclick="selectPreset(13)">13</button>
+    <button class="preset-btn" onclick="selectPreset(15)">15</button>
+    <button class="preset-btn" onclick="selectPreset(21)">21</button>
+  </div>
+  <div class="manual-row">
+    <span style="color:var(--dim);font-size:14px;letter-spacing:1px;text-transform:uppercase;">nebo zadej ručně:</span>
+    <input type="number" id="qty-manual" min="1" placeholder="—"
+      oninput="onManualQty(this.value)"
+      style="background:var(--surface2);border:2px solid var(--border);border-radius:var(--r);
+             color:var(--accent2);font-family:'Roboto Mono',monospace;font-size:32px;
+             width:120px;padding:10px 14px;outline:none;text-align:center;"
+      onfocus="this.style.borderColor='var(--accent)'"
+      onblur="this.style.borderColor='var(--border)'"
+    >
+  </div>
+
+  <button class="btn-submit-big" id="btn-pridat" onclick="pridat()">✓ PŘIDAT ZÁZNAM</button>
+  <div class="safe-bottom"></div>
+</div>
+
+<!-- ===== PŘEHLED ===== -->
+<div id="s-prehled" class="screen">
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="big-num" id="stat-dnes">0</div><div class="small-lbl">Dnes celkem</div></div>
+    <div class="stat-card"><div class="big-num" id="stat-zaznamy">0</div><div class="small-lbl">Záznamů dnes</div></div>
+    <div class="stat-card"><div class="big-num" id="stat-celkem">0</div><div class="small-lbl">Celkem vše</div></div>
+  </div>
+  <div class="filter-row" id="filter-row"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Čas</th><th>Pracovník</th><th>Typ</th><th>Kusů</th><th></th>
+      </tr></thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+    <div id="empty-msg" class="empty-msg" style="display:none">📦 Žádné záznamy</div>
+  </div>
+  <div class="safe-bottom"></div>
+</div>
+
+<!-- ===== REPORT ===== -->
+<div id="s-report" class="screen">
+  <div class="report-schedule">
+    ⏰ <strong>Denní uzávěrka v 17:00</strong> – appka automaticky vygeneruje CSV soubor s dnešními záznamy.<br>
+    Exportuj kdykoli ručně pomocí tlačítek níže.
+  </div>
+
+  <div class="report-card">
+    <h3>Dnešní přehled</h3>
+    <div id="report-dnes-obsah"></div>
+  </div>
+
+  <div class="report-card">
+    <h3>Podle typu palety (dnes)</h3>
+    <div id="report-typy-obsah"></div>
+  </div>
+
+  <button class="btn-export" onclick="exportCSVDnes()">⬇ Export CSV – dnes</button>
+  <button class="btn-export" onclick="exportCSVVse()">⬇ Export CSV – vše záznamy</button>
+  <div class="safe-bottom"></div>
+</div>
+
+<!-- UNDO BANNER -->
+<div id="undo-banner">
+  <div style="flex:1">
+    <div id="undo-text"></div>
+    <div id="undo-progress"><div id="undo-bar"></div></div>
+  </div>
+  <button class="btn-undo" onclick="doUndo()">↩ Zpět</button>
+  <button class="btn-undo-dismiss" onclick="hideUndo()">✕</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const WORKERS = [
+  { name: 'Radek',   color: '#2ecc40', emoji: '' },
+  { name: 'Laďa',    color: '#f5c842', emoji: '' },
+  { name: 'Martin',  color: '#ffffff', emoji: '' },
+  { name: 'Zavadil', color: '#2255cc', emoji: '' },
+  { name: 'Honza',   color: '#9b59b6', emoji: '' },
+];
+
+const PALLET_TYPES = ['EUR A', 'EUR B - lis.', 'EUR B - dřevo', 'STD05', 'STD10', 'STD15', '100x120'];
+
+const UNDO_SEC = 60;
+const DAILY_REPORT_HOUR = 17;
+
+let state = {
+  selectedWorker: null,
+  selectedPallet: null,
+  qty: 1,
+};
+
+let records = JSON.parse(localStorage.getItem('pallet_records') || '[]');
+let pendingSync = JSON.parse(localStorage.getItem('pallet_pending') || '[]');
+let filterWorker = 'all';
+let undoTimer = null;
+let undoBarInterval = null;
+let lastRecord = null;
+let dailyReportDone = false;
+
+const deviceId = localStorage.getItem('device_id') || (() => {
+  const id = 'DEV-' + Math.random().toString(36).substr(2,8).toUpperCase();
+  localStorage.setItem('device_id', id);
+  return id;
+})();
+
+// ─── RENDER WORKERS ─────────────────────────────────────────────────────────
+function renderWorkers() {
+  const g = document.getElementById('worker-grid');
+  g.innerHTML = WORKERS.map((w, i) => `
+    <button class="worker-btn ${state.selectedWorker === i ? 'selected' : ''}"
+            onclick="selectWorker(${i})">
+      <div class="dot" style="background:${w.color}; border:3px solid ${w.color === '#ffffff' ? '#aaaaaa' : w.color}; box-shadow: 0 0 8px ${w.color}66;"></div>
+      <span class="wname">${w.name}</span>
+    </button>
+  `).join('');
+}
+
+function renderPallets() {
+  const g = document.getElementById('pallet-grid');
+  g.innerHTML = PALLET_TYPES.map((p, i) => `
+    <button class="pallet-btn ${state.selectedPallet === i ? 'selected' : ''}"
+            onclick="selectPallet(${i})">${p}</button>
+  `).join('');
+}
+
+function selectWorker(i) {
+  state.selectedWorker = i;
+  renderWorkers();
+}
+
+function selectPallet(i) {
+  state.selectedPallet = i;
+  renderPallets();
+}
+
+function selectPreset(val) {
+  state.qty = val;
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('selected', parseInt(b.textContent) === val);
+  });
+  document.getElementById('qty-manual').value = '';
+}
+
+function onManualQty(val) {
+  const n = parseInt(val);
+  if (n > 0) {
+    state.qty = n;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+  }
+}
+
+function addQty(n) { state.qty = Math.max(1, state.qty + n); }
+function setQty(n) { state.qty = n; }
+
+// ─── PRIDAT ZAZNAM ───────────────────────────────────────────────────────────
+function pridat() {
+  if (state.selectedWorker === null) { showToast('⚠ Vyber pracovníka!'); return; }
+  if (state.selectedPallet === null) { showToast('⚠ Vyber typ palety!'); return; }
+  // Resolve qty from preset or manual input
+  const manualVal = parseInt(document.getElementById('qty-manual').value);
+  if (manualVal > 0) state.qty = manualVal;
+  if (!state.qty || state.qty < 1) { showToast('⚠ Zadej počet kusů!'); return; }
+
+  // Anti-duplicate: check last 2 seconds
+  const now = Date.now();
+  if (lastRecord && (now - lastRecord.ts) < 2000 &&
+      lastRecord.worker === state.selectedWorker &&
+      lastRecord.pallet === state.selectedPallet &&
+      lastRecord.qty === state.qty) {
+    showToast('⚠ Duplicitní klik ignorován');
+    return;
+  }
+
+  const rec = {
+    id: now + '-' + Math.random().toString(36).substr(2,5),
+    ts: now,
+    date: todayStr(),
+    time: timeStr(new Date()),
+    worker: state.selectedWorker,
+    workerName: WORKERS[state.selectedWorker].name,
+    workerColor: WORKERS[state.selectedWorker].color,
+    pallet: state.selectedPallet,
+    palletType: PALLET_TYPES[state.selectedPallet],
+    qty: state.qty,
+    deviceId,
+  };
+
+  records.unshift(rec);
+  lastRecord = { ts: now, worker: state.selectedWorker, pallet: state.selectedPallet, qty: state.qty };
+
+  if (!navigator.onLine) {
+    pendingSync.push(rec);
+    localStorage.setItem('pallet_pending', JSON.stringify(pendingSync));
+    updateSyncBadge();
+  }
+
+  save();
+  showUndoBanner(rec);
+  showToast(`✓ ${rec.workerName} · ${rec.palletType} · ${rec.qty} ks`);
+  // vibrate
+  if (navigator.vibrate) navigator.vibrate(60);
+  // Reset qty
+  state.qty = null;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('qty-manual').value = '';
+  updatePrehled();
+  updateReport();
+}
+
+// ─── UNDO ────────────────────────────────────────────────────────────────────
+function showUndoBanner(rec) {
+  clearUndoTimer();
+  const banner = document.getElementById('undo-banner');
+  document.getElementById('undo-text').textContent =
+    `Přidáno: ${rec.workerName} · ${rec.palletType} · ${rec.qty} ks`;
+  document.getElementById('undo-bar').style.transition = 'none';
+  document.getElementById('undo-bar').style.width = '100%';
+  banner.classList.add('show');
+
+  // Animate bar
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.getElementById('undo-bar').style.transition = `width ${UNDO_SEC}s linear`;
+      document.getElementById('undo-bar').style.width = '0%';
+    });
+  });
+
+  undoTimer = setTimeout(() => { hideUndo(); }, UNDO_SEC * 1000);
+  // Store for undo
+  banner._undoRec = rec;
+}
+
+function doUndo() {
+  const banner = document.getElementById('undo-banner');
+  const rec = banner._undoRec;
+  if (!rec) return;
+  records = records.filter(r => r.id !== rec.id);
+  pendingSync = pendingSync.filter(r => r.id !== rec.id);
+  save();
+  updateSyncBadge();
+  hideUndo();
+  showToast('↩ Záznam vrácen');
+  updatePrehled();
+  updateReport();
+}
+
+function hideUndo() {
+  clearUndoTimer();
+  document.getElementById('undo-banner').classList.remove('show');
+}
+
+function clearUndoTimer() {
+  if (undoTimer) clearTimeout(undoTimer);
+  undoTimer = null;
+}
+
+// ─── PŘEHLED ─────────────────────────────────────────────────────────────────
+function updatePrehled() {
+  const today = todayStr();
+  const dnesRecs = records.filter(r => r.date === today);
+
+  document.getElementById('stat-dnes').textContent = dnesRecs.reduce((s,r) => s+r.qty, 0);
+  document.getElementById('stat-zaznamy').textContent = dnesRecs.length;
+  document.getElementById('stat-celkem').textContent = records.reduce((s,r) => s+r.qty, 0);
+
+  // Filter chips
+  const fr = document.getElementById('filter-row');
+  fr.innerHTML = `<button class="filter-chip ${filterWorker==='all'?'active':''}" onclick="setFilter('all', this)">Vše</button>` +
+    WORKERS.map((w,i) => `
+      <button class="filter-chip ${filterWorker===i?'active':''}" onclick="setFilter(${i}, this)">
+        <span class="dot-sm" style="background:${w.color}"></span>${w.name}
+      </button>`
+    ).join('');
+
+  const filtered = filterWorker === 'all' ? [...records] : records.filter(r => r.worker === filterWorker);
+
+  const body = document.getElementById('tbl-body');
+  const empty = document.getElementById('empty-msg');
+
+  if (!filtered.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = filtered.map(r => `
+    <tr>
+      <td class="td-time">${r.date === today ? r.time : r.date + ' ' + r.time}</td>
+      <td>
+        <span class="dot-sm" style="background:${r.workerColor}"></span>
+        ${r.workerName}
+      </td>
+      <td class="td-type">${r.palletType}</td>
+      <td class="td-qty">${r.qty}</td>
+      <td><button class="btn-del" onclick="smazat('${r.id}')">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function setFilter(val, btn) {
+  filterWorker = val === 'all' ? 'all' : parseInt(val);
+  updatePrehled();
+}
+
+function smazat(id) {
+  records = records.filter(r => r.id !== id);
+  save();
+  updatePrehled();
+  updateReport();
+  showToast('🗑 Smazáno');
+}
+
+// ─── REPORT ──────────────────────────────────────────────────────────────────
+function updateReport() {
+  const today = todayStr();
+  const dnes = records.filter(r => r.date === today);
+
+  // Per worker
+  const byWorker = {};
+  WORKERS.forEach((w,i) => byWorker[i] = { name: w.name, color: w.color, qty: 0 });
+  dnes.forEach(r => byWorker[r.worker].qty += r.qty);
+
+  const whtml = Object.values(byWorker)
+    .filter(w => w.qty > 0)
+    .sort((a,b) => b.qty - a.qty)
+    .map(w => `<div class="report-row">
+      <span><span class="dot-sm" style="background:${w.color}"></span>${w.name}</span>
+      <span class="rval">${w.qty}</span>
+    </div>`).join('') || '<div style="color:var(--dim);padding:12px 0">Žádné záznamy</div>';
+
+  document.getElementById('report-dnes-obsah').innerHTML = whtml;
+
+  // Per type
+  const byType = {};
+  PALLET_TYPES.forEach(t => byType[t] = 0);
+  dnes.forEach(r => byType[r.palletType] += r.qty);
+
+  const thtml = Object.entries(byType)
+    .filter(([,v]) => v > 0)
+    .sort((a,b) => b[1]-a[1])
+    .map(([k,v]) => `<div class="report-row"><span>${k}</span><span class="rval">${v}</span></div>`)
+    .join('') || '<div style="color:var(--dim);padding:12px 0">Žádné záznamy</div>';
+
+  document.getElementById('report-typy-obsah').innerHTML = thtml;
+}
+
+// ─── CSV EXPORT ──────────────────────────────────────────────────────────────
+function exportCSVDnes() {
+  const today = todayStr();
+  exportCSV(records.filter(r => r.date === today), `palety_${today}.csv`);
+}
+
+function exportCSVVse() {
+  exportCSV(records, `palety_export_${todayStr()}.csv`);
+}
+
+function exportCSV(data, filename) {
+  if (!data.length) { showToast('⚠ Žádné záznamy k exportu'); return; }
+  const header = 'date,time,worker,pallet_type,qty,device_id';
+  const rows = data.map(r =>
+    `${r.date},${r.time},"${r.workerName}",${r.palletType},${r.qty},${r.deviceId}`
+  );
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✓ Exportováno: ${filename}`);
+}
+
+// ─── DAILY AUTO-REPORT ───────────────────────────────────────────────────────
+function checkDailyReport() {
+  const now = new Date();
+  const key = `report_done_${todayStr()}`;
+  if (now.getHours() >= DAILY_REPORT_HOUR && !localStorage.getItem(key)) {
+    localStorage.setItem(key, '1');
+    exportCSVDnes();
+    showToast('📊 Denní uzávěrka – CSV exportováno');
+  }
+}
+
+// ─── OFFLINE ─────────────────────────────────────────────────────────────────
+function updateOnlineStatus() {
+  document.body.classList.toggle('offline', !navigator.onLine);
+  if (navigator.onLine && pendingSync.length) {
+    // In real app: push pendingSync to server
+    pendingSync = [];
+    localStorage.setItem('pallet_pending', '[]');
+    updateSyncBadge();
+    showToast('✓ Synchronizováno ' + pendingSync.length + ' záznamů');
+  }
+}
+
+function updateSyncBadge() {
+  const b = document.getElementById('sync-badge');
+  if (pendingSync.length > 0) {
+    b.classList.add('show');
+    b.textContent = `⟳ ${pendingSync.length} k sync`;
+  } else {
+    b.classList.remove('show');
+  }
+}
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'prehled') updatePrehled();
+  if (id === 'report') updateReport();
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+
+function timeStr(d) {
+  return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function save() {
+  localStorage.setItem('pallet_records', JSON.stringify(records));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderWorkers();
+renderPallets();
+updatePrehled();
+updateReport();
+updateOnlineStatus();
+updateSyncBadge();
+updateClock();
+
+setInterval(updateClock, 1000);
+setInterval(checkDailyReport, 30000);
+checkDailyReport();
+</script>
+</body>
+</html>
